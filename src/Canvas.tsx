@@ -32,10 +32,10 @@ export function Canvas() {
           width = maxHeight * aspectRatio;
         }
       }
-      const x = canvas.width / 2 - image.width / 2;
-      const y = canvas.height / 2 - image.height / 2;
+      const x = canvas.width / 2 - width / 2;
+      const y = canvas.height / 2 - height / 2;
 
-      ctx.drawImage(image, x, y, image.width, image.height);
+      ctx.drawImage(image, x, y, width, height);
     }
 
     async function main() {

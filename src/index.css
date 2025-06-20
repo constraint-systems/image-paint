@@ -3,12 +3,17 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'DepartureMono';
-  src: url('DepartureMono-Regular.woff') format('woff');
+  font-family: "DepartureMono";
+  src:
+    url("/fonts/DepartureMono-Regular.woff2") format("woff2"),
+    url("s/fonts/DepartureMono-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
 }
 
-html, body {
-  font-family: 'DepartureMono';
+html,
+body {
+  font-family: "DepartureMono";
   background-color: black;
   color: white;
   overflow: hidden;
