@@ -6,7 +6,7 @@
   font-family: "DepartureMono";
   src:
     url("/fonts/DepartureMono-Regular.woff2") format("woff2"),
-    url("s/fonts/DepartureMono-Regular.woff") format("woff");
+    url("/fonts/DepartureMono-Regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
