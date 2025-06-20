@@ -1,0 +1,180 @@
+import { useAtom } from "jotai";
+import { ActionModeAtom, CameraAtom, PlaceableImageAtom } from "./Atoms";
+import { useEffect, useRef, useState } from "react";
+import { loadImage, screenToCanvas } from "./Utils";
+import { canvasHeight, canvasWidth, stateRef } from "./consts";
+
+export function PlaceableImage() {
+  const [placeableImage, setPlaceableImage] = useAtom(PlaceableImageAtom);
+  const [isDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [, setActionMode] = useAtom(ActionModeAtom);
+  const [camera] = useAtom(CameraAtom);
+
+  const resizeOffset = useRef({ x: 0, y: 0 });
+  const resizeStartDimensions = useRef({ width: 0, height: 0, x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        if (placeableImage) {
+          const image = await loadImage(placeableImage.url);
+          stateRef.rtx!.drawImage(
+            image,
+            placeableImage.x,
+            placeableImage.y,
+            placeableImage.width,
+            placeableImage.height,
+          );
+          setPlaceableImage(null);
+          setActionMode("paint");
+        }
+      }
+      if (e.key === "Escape") {
+        setPlaceableImage(null);
+        setActionMode("paint");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [placeableImage]);
+
+  if (!placeableImage) return null;
+
+  const handleResizeStart = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const canvasPoint = screenToCanvas(
+      { x: e.clientX, y: e.clientY },
+      stateRef.camera,
+      stateRef.zoomContainer!,
+    );
+
+    setIsResizing(true);
+    resizeOffset.current = {
+      x: canvasPoint.x - placeableImage.x - placeableImage.width,
+      y: canvasPoint.y - placeableImage.y - placeableImage.height,
+    };
+    resizeStartDimensions.current = {
+      width: placeableImage.width,
+      height: placeableImage.height,
+      x: placeableImage.x,
+      y: placeableImage.y,
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isResizing) return;
+
+    const canvasPoint = screenToCanvas(
+      { x: e.clientX, y: e.clientY },
+      stateRef.camera,
+      stateRef.zoomContainer!,
+    );
+
+    if (isResizing) {
+      // preserve aspect ratio
+      const aspectRatio = placeableImage.width / placeableImage.height;
+      let targetWidth = Math.max(
+        canvasPoint.x -
+          resizeStartDimensions.current.x -
+          resizeOffset.current.x,
+        64,
+      );
+      let targetHeight = Math.max(
+        canvasPoint.y -
+          resizeStartDimensions.current.y -
+          resizeOffset.current.y,
+        64,
+      );
+      const targetAspectRatio = targetWidth / targetHeight;
+      if (targetAspectRatio > aspectRatio) {
+        targetHeight = targetWidth / aspectRatio;
+      } else {
+        targetWidth = targetHeight * aspectRatio;
+      }
+      setPlaceableImage({
+        ...placeableImage,
+        width: targetWidth,
+        height: targetHeight,
+        x: resizeStartDimensions.current.x,
+        y: resizeStartDimensions.current.y,
+      });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsResizing(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const resizeSize = 24 / camera.z;
+
+  return (
+    <div
+      className="select-none"
+      style={{
+        position: "relative",
+        width: canvasWidth,
+        height: canvasHeight,
+      }}
+    >
+      <div className="overflow-hidden absolute top-0 left-0 w-full h-full">
+        <div
+          style={{
+            position: "absolute",
+            left: placeableImage.x,
+            top: placeableImage.y,
+            width: placeableImage.width,
+            height: placeableImage.height,
+          }}
+        >
+          <img
+            src={placeableImage.url}
+            alt="Placeable"
+            style={{
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div
+          className="border-blue-500"
+          style={{
+            borderWidth: 2 / camera.z,
+            position: "absolute",
+            left: placeableImage.x,
+            top: placeableImage.y,
+            width: placeableImage.width,
+            height: placeableImage.height,
+            cursor: isDragging ? "grabbing" : "grab",
+          }}
+        >
+          <div
+            className="bg-blue-500 pointer-events-auto"
+            onPointerDown={handleResizeStart}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            style={{
+              position: "absolute",
+              bottom: -resizeSize / 2,
+              right: -resizeSize / 2,
+              width: resizeSize,
+              height: resizeSize,
+              cursor: "nwse-resize",
+              zIndex: 10,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
