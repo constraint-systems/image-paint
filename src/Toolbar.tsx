@@ -1,8 +1,7 @@
 import { useAtom } from "jotai";
-import { ActionModeAtom, PlaceableImageAtom } from "./Atoms";
+import { ActionModeAtom, CanvasURLAtom } from "./Atoms";
 import { ActionModeType } from "./Types";
-import { stateRef } from "./consts";
-import { loadImage, placeImage } from "./Utils";
+import { usePlaceImage } from "./hooks";
 import { useEffect, useState } from "react";
 import {
   ArrowDownIcon,
@@ -10,11 +9,14 @@ import {
   InfoIcon,
   PaintbrushIcon,
   PlusIcon,
+  XIcon,
 } from "lucide-react";
 
 export function Toolbar() {
   const [actionMode, setActionMode] = useAtom(ActionModeAtom);
+  const [canvasURL] = useAtom(CanvasURLAtom);
   const [showInfo, setShowInfo] = useState(false);
+  const placeImage = usePlaceImage();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -30,7 +32,7 @@ export function Toolbar() {
 
   return (
     <>
-      <div className="absolute pointer-events-none select-none top-4 left-4 flex-col gap-2 hidden">
+      <div className="absolute pointer-events-none select-none top-4 left-4 flex-col gap-2">
         Image Paint
       </div>
       <div className="absolute pointer-events-none select-none top-4 right-4 flex flex-col gap-2">
@@ -40,7 +42,7 @@ export function Toolbar() {
           className={`px-4 py-3 rounded-[50%] pointer-events-auto bg-neutral-800 hover:bg-yellow-500 hover:text-black h-16 w-16 flex items-center justify-center`}
           onClick={() => setShowInfo(!showInfo)}
         >
-          <InfoIcon size={20} />
+          <InfoIcon style={{ position: "relative", top: "-1px" }} size={20} />
         </button>
       </div>
       <div className="absolute pointer-events-none select-none bottom-4 left-4 flex flex-col gap-3">
@@ -53,7 +55,7 @@ export function Toolbar() {
               onClick={() => setActionMode(mode as ActionModeType)}
             >
               {mode === "paint" ? (
-                <PaintbrushIcon size={20} />
+                <PaintbrushIcon size={21} />
               ) : (
                 <EraserIcon size={20} />
               )}
@@ -82,20 +84,15 @@ export function Toolbar() {
       </div>
       <div className="absolute pointer-events-none bottom-4 right-4 select-none flex gap-2">
         <>
-          <button
+          <a
             key="download"
             className={`h-16 w-16 flex items-center justify-center pointer-events-auto rounded-[50%] hover:bg-green-700 bg-neutral-800`}
-            onClick={() => {
-              const link = document.createElement("a");
-              const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-              link.download = "image-paint-" + timestamp + ".png";
-              link.href = stateRef.renderCanvas!.toDataURL("image/png");
-              link.click();
-            }}
+            href={canvasURL}
+            download={`${new Date().toISOString().replace(/[:.]/g, "-")}-image-paint.png`}
             title="Download"
           >
             <ArrowDownIcon size={20} />
-          </button>
+          </a>
         </>
       </div>
       {showInfo ? (
@@ -104,27 +101,36 @@ export function Toolbar() {
           onClick={() => setShowInfo(true)}
         >
           <div
-            className="bg-neutral-800 pointer-events-auto max-w-[540px] w-full px-4 pt-4 pb-6"
+            className="bg-neutral-800 relative pointer-events-auto max-w-[540px] w-full px-4 pt-4 pb-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-[1lh]">
               <div className="text-yellow-500">About</div>
               <button
-                key="close-info"
-                className="bg-neutral-700 rounded-[50%] hover:bg-yellow-500 hover:text-black pointer-events-auto px-4 py-3 rotate-45 -mr-4"
+                className="cursor-pointer px-3 py-2 -my-2 text-red-500"
                 onClick={() => setShowInfo(false)}
               >
-                Close
+                &times;
               </button>
             </div>
             <div className="mb-[1lh]">
               A paint effect based on how computers render images. Pixels are
               copied and pasted in the direction you click and drag.
             </div>
-
-            <div className="">
+            <div className="mb-[1lh]">
               This is an attempt to make something that feels tactile like
               paint, but that "goes with the grain" of its digital nature.
+            </div>
+            <div>
+              A{" "}
+              <a
+                href="https://constraint.systems"
+                target="_blank"
+                className="underline text-blue-500"
+              >
+                Constraint Systems
+              </a>{" "}
+              experiment
             </div>
           </div>
         </div>

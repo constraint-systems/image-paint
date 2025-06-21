@@ -3,11 +3,12 @@ import { Toolbar } from "./Toolbar";
 import { useAtom } from "jotai";
 import { ActionModeAtom } from "./Atoms";
 import { useEffect } from "react";
-import { placeImage } from "./Utils";
+import { usePlaceImage } from "./hooks";
 import { Cursor } from "./Cursor";
 
 function App() {
   const [actionMode] = useAtom(ActionModeAtom);
+  const placeImage = usePlaceImage();
 
   useEffect(() => {
     // handle drag and drop image

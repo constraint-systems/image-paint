@@ -1,4 +1,4 @@
-import { stateRef } from "./consts";
+import { canvasHeight, canvasWidth, stateRef } from "./consts";
 import { Camera, Point } from "./Types";
 
 export function screenToCanvas(
@@ -109,4 +109,22 @@ export async function placeImage(url: string) {
     width,
     height,
   );
+}
+
+export function drawToFavicon() {
+  if (!stateRef.faviconEl) return;
+  stateRef.faviconCtx.clearRect(0, 0, 64, 64);
+  stateRef.faviconCtx.drawImage(
+    stateRef.renderCanvas!,
+    0,
+    0,
+    canvasWidth,
+    canvasHeight,
+    0,
+    0,
+    64,
+    64,
+  );
+  const faviconURL = stateRef.faviconCanvas.toDataURL("image/png");
+  stateRef.faviconEl.href = faviconURL;
 }

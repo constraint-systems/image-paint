@@ -1,50 +1,23 @@
 import { useEffect, useRef } from "react";
 import { canvasHeight, canvasWidth, stateRef } from "./consts";
-import { loadImage } from "./Utils";
+import { usePlaceImage } from "./hooks";
 
 export function Canvas() {
   const runOnceRef = useRef(false);
+  const placeImage = usePlaceImage();
+
   useEffect(() => {
-    async function loadStarterImage(
-      canvas: HTMLCanvasElement,
-      ctx: CanvasRenderingContext2D,
-    ) {
-      runOnceRef.current = true;
-      const images = [
-        "bird.jpg",
-        "farm.jpg",
-        "octopus.jpg",
-        "sunset.jpg",
-        "turtle.jpg",
-      ];
-      const image = await loadImage(
-        "/images/" + images[Math.floor(Math.random() * images.length)],
-      );
-      const maxWidth = canvas.width;
-      const maxHeight = canvas.height;
-      const aspectRatio = image.width / image.height;
-      let width = maxWidth;
-      let height = maxHeight;
-      if (image.width > maxWidth || image.height > maxHeight) {
-        if (aspectRatio > 1) {
-          height = maxWidth / aspectRatio;
-        } else {
-          width = maxHeight * aspectRatio;
-        }
-      }
-      const x = canvas.width / 2 - width / 2;
-      const y = canvas.height / 2 - height / 2;
-
-      ctx.drawImage(image, x, y, width, height);
-    }
-
-    async function main() {
-      if (stateRef.rtx && stateRef.renderCanvas && !runOnceRef.current) {
-        runOnceRef.current = true;
-        await loadStarterImage(stateRef.renderCanvas, stateRef.rtx);
-      }
-    }
-    main();
+    if (runOnceRef.current) return;
+    runOnceRef.current = true;
+    const images = [
+      "bird.jpg",
+      "farm.jpg",
+      "octopus.jpg",
+      "sunset.jpg",
+      "turtle.jpg",
+    ];
+    const url = "/images/" + images[Math.floor(Math.random() * images.length)];
+    placeImage(url);
   }, []);
 
   return (

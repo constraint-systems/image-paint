@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import {
   ActionModeAtom,
   CameraAtom,
+  CanvasURLAtom,
   IsPanningAtom,
   ZoomContainerAtom,
 } from "./Atoms";
@@ -13,7 +14,13 @@ import {
   frameBufferWidth,
   stateRef,
 } from "./consts";
-import { zoomCamera, panCamera, screenToCanvas, rotatePoint } from "./Utils";
+import {
+  zoomCamera,
+  panCamera,
+  screenToCanvas,
+  rotatePoint,
+  drawToFavicon,
+} from "./Utils";
 import { Canvas } from "./Canvas";
 
 export function Zoom() {
@@ -22,6 +29,7 @@ export function Zoom() {
   const [camera, setCamera] = useAtom(CameraAtom);
   const [zoomContainer, setZoomContainer] = useAtom(ZoomContainerAtom);
   const eventsContainerRef = useRef(null as HTMLDivElement | null);
+  const [, setCanvasURL] = useAtom(CanvasURLAtom);
 
   useEffect(() => {
     stateRef.camera = camera;
@@ -128,9 +136,9 @@ export function Zoom() {
       };
       const prevDistance = Math.hypot(
         activePointersMapRef.current[activePointersRef.current[0]].screenX -
-        activePointersMapRef.current[activePointersRef.current[1]].screenX,
+          activePointersMapRef.current[activePointersRef.current[1]].screenX,
         activePointersMapRef.current[activePointersRef.current[0]].screenY -
-        activePointersMapRef.current[activePointersRef.current[1]].screenY,
+          activePointersMapRef.current[activePointersRef.current[1]].screenY,
       );
       activePointersMapRef.current[event.pointerId] = {
         screenX: event.clientX,
@@ -154,9 +162,9 @@ export function Zoom() {
       const dy = averagePrevPoint.y - averageCurrentPoint.y;
       const newDistance = Math.hypot(
         activePointersMapRef.current[activePointersRef.current[0]].screenX -
-        activePointersMapRef.current[activePointersRef.current[1]].screenX,
+          activePointersMapRef.current[activePointersRef.current[1]].screenX,
         activePointersMapRef.current[activePointersRef.current[0]].screenY -
-        activePointersMapRef.current[activePointersRef.current[1]].screenY,
+          activePointersMapRef.current[activePointersRef.current[1]].screenY,
       );
 
       setCamera((camera) =>
@@ -294,6 +302,8 @@ export function Zoom() {
       isPanningRef.current = false;
       setIsPanning(false);
     }
+    setCanvasURL(stateRef.renderCanvas!.toDataURL("image/png"));
+    drawToFavicon();
   }
 
   return (
