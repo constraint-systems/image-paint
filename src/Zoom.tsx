@@ -4,7 +4,6 @@ import {
   ActionModeAtom,
   CameraAtom,
   IsPanningAtom,
-  PlaceableImageAtom,
   ZoomContainerAtom,
 } from "./Atoms";
 import {
@@ -16,14 +15,12 @@ import {
 } from "./consts";
 import { zoomCamera, panCamera, screenToCanvas, rotatePoint } from "./Utils";
 import { Canvas } from "./Canvas";
-import { PlaceableImage } from "./PlaceableImage";
 
 export function Zoom() {
   const [actionMode] = useAtom(ActionModeAtom);
   const [, setIsPanning] = useAtom(IsPanningAtom);
   const [camera, setCamera] = useAtom(CameraAtom);
   const [zoomContainer, setZoomContainer] = useAtom(ZoomContainerAtom);
-  const [placeableImage, setPlaceableImage] = useAtom(PlaceableImageAtom);
   const eventsContainerRef = useRef(null as HTMLDivElement | null);
 
   useEffect(() => {
@@ -95,27 +92,8 @@ export function Zoom() {
 
     if (activePointersRef.current.length === 1) {
       isPanningRef.current = false;
-      const imagePoint = {
-        x: canvasPoint.x + canvasWidth / 2,
-        y: canvasPoint.y + canvasHeight / 2,
-      };
-      if (
-        placeableImage &&
-        imagePoint.x >= placeableImage.x &&
-        imagePoint.x <= placeableImage.x + placeableImage.width &&
-        imagePoint.y >= placeableImage.y &&
-        imagePoint.y <= placeableImage.y + placeableImage.height
-      ) {
-        isPlacingImageRef.current = true;
-        activePointersMapRef.current[activePointersRef.current[0]].offsetX =
-          canvasPoint.x - placeableImage.x;
-        activePointersMapRef.current[activePointersRef.current[0]].offsetY =
-          canvasPoint.y - placeableImage.y;
-        isDraggingRef.current = false;
-      } else {
-        isDraggingRef.current = true;
-        isPlacingImageRef.current = false;
-      }
+      isDraggingRef.current = true;
+      isPlacingImageRef.current = false;
     } else if (activePointersRef.current.length === 2) {
       isDraggingRef.current = false;
       isPlacingImageRef.current = false;
@@ -150,9 +128,9 @@ export function Zoom() {
       };
       const prevDistance = Math.hypot(
         activePointersMapRef.current[activePointersRef.current[0]].screenX -
-          activePointersMapRef.current[activePointersRef.current[1]].screenX,
+        activePointersMapRef.current[activePointersRef.current[1]].screenX,
         activePointersMapRef.current[activePointersRef.current[0]].screenY -
-          activePointersMapRef.current[activePointersRef.current[1]].screenY,
+        activePointersMapRef.current[activePointersRef.current[1]].screenY,
       );
       activePointersMapRef.current[event.pointerId] = {
         screenX: event.clientX,
@@ -176,9 +154,9 @@ export function Zoom() {
       const dy = averagePrevPoint.y - averageCurrentPoint.y;
       const newDistance = Math.hypot(
         activePointersMapRef.current[activePointersRef.current[0]].screenX -
-          activePointersMapRef.current[activePointersRef.current[1]].screenX,
+        activePointersMapRef.current[activePointersRef.current[1]].screenX,
         activePointersMapRef.current[activePointersRef.current[0]].screenY -
-          activePointersMapRef.current[activePointersRef.current[1]].screenY,
+        activePointersMapRef.current[activePointersRef.current[1]].screenY,
       );
 
       setCamera((camera) =>
@@ -189,16 +167,6 @@ export function Zoom() {
           stateRef.zoomContainer!,
         ),
       );
-    } else if (isPlacingImageRef.current) {
-      setPlaceableImage({
-        ...placeableImage as any,
-        x:
-          canvasPoint.x -
-          activePointersMapRef.current[event.pointerId].offsetX!,
-        y:
-          canvasPoint.y -
-          activePointersMapRef.current[event.pointerId].offsetY!,
-      });
     } else if (isDraggingRef.current) {
       const prevImagePoint = {
         x:
@@ -228,7 +196,7 @@ export function Zoom() {
         // All we need going into here is dy and dx, plus pointer position
         const angle = Math.atan2(dy, dx) - Math.PI / 2;
 
-        if (dx * dx + dy * dy < 1 / stateRef.camera.z) return
+        if (dx * dx + dy * dy < 1 / stateRef.camera.z) return;
 
         const ftx = stateRef.ftx!;
         const rtx = stateRef.rtx!;
@@ -365,7 +333,6 @@ export function Zoom() {
           }}
         >
           <Canvas />
-          <PlaceableImage />
         </div>
       </div>
     </div>

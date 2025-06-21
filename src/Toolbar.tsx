@@ -2,15 +2,19 @@ import { useAtom } from "jotai";
 import { ActionModeAtom, PlaceableImageAtom } from "./Atoms";
 import { ActionModeType } from "./Types";
 import { stateRef } from "./consts";
-import { loadImage } from "./Utils";
+import { loadImage, placeImage } from "./Utils";
 import { useEffect, useState } from "react";
-import { useBeginPlacingImage } from "./hooks";
+import {
+  ArrowDownIcon,
+  EraserIcon,
+  InfoIcon,
+  PaintbrushIcon,
+  PlusIcon,
+} from "lucide-react";
 
 export function Toolbar() {
   const [actionMode, setActionMode] = useAtom(ActionModeAtom);
-  const [placeableImage, setPlaceableImage] = useAtom(PlaceableImageAtom);
   const [showInfo, setShowInfo] = useState(false);
-  const beginPlacingImage = useBeginPlacingImage();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,134 +30,73 @@ export function Toolbar() {
 
   return (
     <>
-      <div className="absolute pointer-events-none select-none top-4 left-4 flex flex-col gap-2">
+      <div className="absolute pointer-events-none select-none top-4 left-4 flex-col gap-2 hidden">
         Image Paint
       </div>
-      <div className="absolute pointer-events-none select-none top-6 right-2 flex flex-col gap-2">
+      <div className="absolute pointer-events-none select-none top-4 right-4 flex flex-col gap-2">
         <button
           key="about"
-          className={`px-4 py-3 rounded-[50%] pointer-events-auto bg-neutral-800 hover:bg-yellow-500 hover:text-black rotate-45`}
+          title="About"
+          className={`px-4 py-3 rounded-[50%] pointer-events-auto bg-neutral-800 hover:bg-yellow-500 hover:text-black h-16 w-16 flex items-center justify-center`}
           onClick={() => setShowInfo(!showInfo)}
         >
-          About
+          <InfoIcon size={20} />
         </button>
       </div>
-      <div className="absolute pointer-events-none select-none bottom-4 left-4 flex flex-col gap-2">
-        {actionMode === "place" ? null : (
-          <>
-            {["paint", "erase"].map((mode) => (
-              <button
-                key={mode}
-                className={`px-4 py-3 rounded-[50%] pointer-events-auto ${actionMode === mode ? "bg-neutral-300 text-black" : "bg-neutral-800 hover:bg-neutral-500"} `}
-                onClick={() => setActionMode(mode as ActionModeType)}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
-            <label
-              key="image-upload"
-              className={`block px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-blue-500 bg-neutral-800`}
-            >
-              <input
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  setActionMode("place");
-                  if (file) {
-                    const url = URL.createObjectURL(file);
-                    beginPlacingImage(url);
-                  }
-                }}
-              />
-              +Image
-            </label>
-          </>
-        )}
-      </div>
-      <div className="absolute pointer-events-none bottom-4 right-4 select-none flex gap-2">
-        {actionMode === "place" ? (
-          <>
+      <div className="absolute pointer-events-none select-none bottom-4 left-4 flex flex-col gap-3">
+        <>
+          {["paint", "erase"].map((mode) => (
             <button
-              key="image-place-clear"
-              className={`px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-red-600 bg-neutral-800`}
-              onClick={() => {
-                stateRef.rtx?.clearRect(
-                  0,
-                  0,
-                  stateRef.renderCanvas!.width,
-                  stateRef.renderCanvas!.height,
-                );
-              }}
+              title={mode === "paint" ? "Paint" : "Erase"}
+              key={mode}
+              className={`rounded-full h-16 w-16 flex items-center justify-center pointer-events-auto ${actionMode === mode ? "bg-neutral-300 text-black" : "bg-neutral-800 hover:bg-neutral-500"} `}
+              onClick={() => setActionMode(mode as ActionModeType)}
             >
-              Clear
+              {mode === "paint" ? (
+                <PaintbrushIcon size={20} />
+              ) : (
+                <EraserIcon size={20} />
+              )}
             </button>
-
-            <button
-              key="cancel"
-              className={`px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-red-600 bg-neutral-800`}
-              onClick={async () => {
-                setPlaceableImage(null);
-                setActionMode("paint");
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              key="place-image"
-              className={`px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-green-700 bg-neutral-800`}
-              onClick={async () => {
-                if (placeableImage) {
-                  const image = await loadImage(placeableImage.url);
-                  stateRef.rtx!.drawImage(
-                    image,
-                    placeableImage.x,
-                    placeableImage.y,
-                    placeableImage.width,
-                    placeableImage.height,
-                  );
-                  setPlaceableImage(null);
-                  setActionMode("paint");
+          ))}
+          <label
+            key="image-upload"
+            className={`block w-16 h-16 flex items-center justify-center pointer-events-auto rounded-[50%] hover:bg-blue-500 bg-neutral-800`}
+            title="Load Image"
+          >
+            <input
+              type="file"
+              accept="image/png, image/jpeg, image/webp"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  placeImage(url);
                 }
               }}
-            >
-              Place Image
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              key="clear"
-              className={`px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-red-600 bg-neutral-800`}
-              onClick={() => {
-                stateRef.rtx?.clearRect(
-                  0,
-                  0,
-                  stateRef.renderCanvas!.width,
-                  stateRef.renderCanvas!.height,
-                );
-              }}
-            >
-              Clear
-            </button>
-            <button
-              key="download"
-              className={`px-4 py-3 pointer-events-auto rounded-[50%] hover:bg-green-700 bg-neutral-800`}
-              onClick={() => {
-                const link = document.createElement("a");
-                const timestamp = new Date()
-                  .toISOString()
-                  .replace(/[:.]/g, "-");
-                link.download = "image-paint-" + timestamp + ".png";
-                link.href = stateRef.renderCanvas!.toDataURL("image/png");
-                link.click();
-              }}
-            >
-              Download
-            </button>
-          </>
-        )}
+            />
+            <PlusIcon size={20} />
+          </label>
+        </>
+      </div>
+      <div className="absolute pointer-events-none bottom-4 right-4 select-none flex gap-2">
+        <>
+          <button
+            key="download"
+            className={`h-16 w-16 flex items-center justify-center pointer-events-auto rounded-[50%] hover:bg-green-700 bg-neutral-800`}
+            onClick={() => {
+              const link = document.createElement("a");
+              const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+              link.download = "image-paint-" + timestamp + ".png";
+              link.href = stateRef.renderCanvas!.toDataURL("image/png");
+              link.click();
+            }}
+            title="Download"
+          >
+            <ArrowDownIcon size={20} />
+          </button>
+        </>
       </div>
       {showInfo ? (
         <div

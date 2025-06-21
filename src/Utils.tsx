@@ -1,3 +1,4 @@
+import { stateRef } from "./consts";
 import { Camera, Point } from "./Types";
 
 export function screenToCanvas(
@@ -84,4 +85,28 @@ export function makeCanvas(width: number, height: number): HTMLCanvasElement {
   if (!ctx) throw new Error("Failed to get canvas context");
   ctx.imageSmoothingEnabled = false;
   return canvas;
+}
+
+export async function placeImage(url: string) {
+  const image = await loadImage(url);
+  const minSize = 1280;
+  let width = image.width;
+  let height = image.height;
+  const aspectRatio = width / height;
+  const containerAspectRatio = 1;
+  // cover container
+  if (aspectRatio > containerAspectRatio) {
+    height = minSize;
+    width = minSize * aspectRatio;
+  } else {
+    width = minSize;
+    height = minSize / aspectRatio;
+  }
+  stateRef.rtx!.drawImage(
+    image,
+    stateRef.renderCanvas!.width / 2 - width / 2,
+    stateRef.renderCanvas!.height / 2 - height / 2,
+    width,
+    height,
+  );
 }

@@ -1,14 +1,13 @@
 import { Zoom } from "./Zoom";
-import { Rake } from "./Rake";
 import { Toolbar } from "./Toolbar";
 import { useAtom } from "jotai";
 import { ActionModeAtom } from "./Atoms";
 import { useEffect } from "react";
-import { useBeginPlacingImage } from "./hooks";
+import { placeImage } from "./Utils";
+import { Cursor } from "./Cursor";
 
 function App() {
   const [actionMode] = useAtom(ActionModeAtom);
-  const beginPlacingImage = useBeginPlacingImage();
 
   useEffect(() => {
     // handle drag and drop image
@@ -23,7 +22,7 @@ function App() {
           file.type === "image/webp")
       ) {
         const url = URL.createObjectURL(file);
-        await beginPlacingImage(url);
+        placeImage(url);
       }
     };
     const handleDragOver = (e: DragEvent) => {
@@ -42,7 +41,7 @@ function App() {
             const file = item.getAsFile();
             if (file) {
               const url = URL.createObjectURL(file);
-              await beginPlacingImage(url);
+              placeImage(url);
             }
           }
         }
@@ -55,7 +54,7 @@ function App() {
       window.removeEventListener("dragover", handleDragOver);
       window.removeEventListener("paste", handlePaste);
     };
-  }, [beginPlacingImage]);
+  }, []);
 
   return (
     <div className="w-full h-[100dvh] bg-neutral-900 relative overflow-hidden flex flex-col">
@@ -63,7 +62,7 @@ function App() {
         <Zoom />
       </div>
       <Toolbar />
-      {actionMode !== "place" ? <Rake /> : null}
+      <Cursor />
     </div>
   );
 }

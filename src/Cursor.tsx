@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import { useRef, useEffect } from "react";
 import { IsPanningAtom } from "./Atoms";
 
-export function Rake() {
+export function Cursor() {
   const rakeRef = useRef<HTMLDivElement | null>(null);
   const positionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const prevPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
