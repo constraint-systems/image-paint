@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import {
   ActionModeAtom,
   CameraAtom,
-  CanvasURLAtom,
   IsPanningAtom,
   ZoomContainerAtom,
 } from "./Atoms";
@@ -29,7 +28,6 @@ export function Zoom() {
   const [camera, setCamera] = useAtom(CameraAtom);
   const [zoomContainer, setZoomContainer] = useAtom(ZoomContainerAtom);
   const eventsContainerRef = useRef(null as HTMLDivElement | null);
-  const [, setCanvasURL] = useAtom(CanvasURLAtom);
 
   useEffect(() => {
     stateRef.camera = camera;
@@ -302,7 +300,6 @@ export function Zoom() {
       isPanningRef.current = false;
       setIsPanning(false);
     }
-    setCanvasURL(stateRef.renderCanvas!.toDataURL("image/png"));
     drawToFavicon();
   }
 

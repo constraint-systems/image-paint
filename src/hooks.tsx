@@ -1,11 +1,7 @@
-import { useAtom } from "jotai";
 import { stateRef } from "./consts";
 import { drawToFavicon, loadImage } from "./Utils";
-import { CanvasURLAtom } from "./Atoms";
 
 export function usePlaceImage() {
-  const [, setCanvasURL] = useAtom(CanvasURLAtom);
-
   return async function placeImage(url: string) {
     const image = await loadImage(url);
     const minSize = 1280;
@@ -28,7 +24,6 @@ export function usePlaceImage() {
       width,
       height,
     );
-    setCanvasURL(stateRef.renderCanvas!.toDataURL("image/png"));
     drawToFavicon();
   };
 }

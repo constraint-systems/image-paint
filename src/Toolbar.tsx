@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { ActionModeAtom, CanvasURLAtom } from "./Atoms";
+import { ActionModeAtom } from "./Atoms";
 import { ActionModeType } from "./Types";
 import { usePlaceImage } from "./hooks";
 import { useEffect, useState } from "react";
@@ -9,12 +9,12 @@ import {
   InfoIcon,
   PaintbrushIcon,
   PlusIcon,
-  XIcon,
 } from "lucide-react";
+import { shareOrDownload } from "./Utils";
+import { stateRef } from "./consts";
 
 export function Toolbar() {
   const [actionMode, setActionMode] = useAtom(ActionModeAtom);
-  const [canvasURL] = useAtom(CanvasURLAtom);
   const [showInfo, setShowInfo] = useState(false);
   const placeImage = usePlaceImage();
 
@@ -84,15 +84,15 @@ export function Toolbar() {
       </div>
       <div className="absolute pointer-events-none bottom-4 right-4 select-none flex gap-2">
         <>
-          <a
+          <button
             key="download"
             className={`h-16 w-16 flex items-center justify-center pointer-events-auto rounded-[50%] hover:bg-green-700 bg-neutral-800`}
-            href={canvasURL}
-            download={`${new Date().toISOString().replace(/[:.]/g, "-")}-image-paint.png`}
-            title="Download"
+            onClick={() => {
+              shareOrDownload(stateRef.renderCanvas!);
+            }}
           >
             <ArrowDownIcon size={20} />
-          </a>
+          </button>
         </>
       </div>
       {showInfo ? (

@@ -128,3 +128,41 @@ export function drawToFavicon() {
   const faviconURL = stateRef.faviconCanvas.toDataURL("image/png");
   stateRef.faviconEl.href = faviconURL;
 }
+
+
+function isIOS() {
+  // @ts-ignore
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+export async function shareOrDownload(canvas: HTMLCanvasElement) {
+  const blob = await new Promise<Blob>(resolve =>
+    canvas.toBlob(blob => resolve(blob!), "image/png")
+  );
+  const file = new File([blob], "image.png", { type: "image/png" });
+
+  if (
+    isIOS() &&
+    navigator.canShare &&
+    navigator.canShare({ files: [file] })
+  ) {
+    try {
+      await navigator.share({
+        title: "Image",
+        files: [file],
+      });
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  } else {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.T]/g, "-").replace('Z','').split('-').slice(0, 5).join('-');
+    link.download = `${timestamp}-image-paint.png`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+}

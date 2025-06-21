@@ -11,6 +11,4 @@ export const ZoomContainerAtom = atom<HTMLDivElement | null>(null);
 
 export const ActionModeAtom = atom<ActionModeType>("paint");
 
-export const CanvasURLAtom = atom<string>("");
-
 export const IsPanningAtom = atom<boolean>(false);
