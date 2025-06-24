@@ -158,7 +158,7 @@ export async function shareOrDownload(canvas: HTMLCanvasElement) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const timestamp = new Date().toISOString().replace(/[:.T]/g, "-").replace('Z','').split('-').slice(0, 5).join('-');
-    link.download = `${timestamp}-image-paint.png`;
+    link.download = `image-paint-${timestamp}.png`;
     link.href = url;
     document.body.appendChild(link);
     link.click();
